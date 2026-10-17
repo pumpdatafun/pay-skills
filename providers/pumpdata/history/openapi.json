@@ -3,8 +3,8 @@
   "info": {
     "title": "Pump Data",
     "version": "0.3.0",
-    "summary": "Every PumpSwap trade, ever, for trading agents, by the call.",
-    "description": "Every PumpSwap trade since its launch (20 Mar 2025; the archive begins 10 Mar 2025) and every pump.fun bonding-curve trade since then, every mint (including those whose address does not end in \"pump\"), every balance change, and each wallet's record over the whole history. Four calls, paid per call in USDC over x402 on Solana; no account, no key. Every call answers. Not affiliated with pump.fun. Plain-text overview at /llms.txt.",
+    "summary": "Every pump.fun trade, ever, for trading agents, by the call.",
+    "description": "Every pump.fun trade since pump.fun's first day, bonding curve and PumpSwap, every mint (including those whose address does not end in \"pump\"), every balance change, and each wallet's record over the whole history. Four calls, paid per call in USDC over x402 on Solana; no account, no key. Every call answers. Not affiliated with pump.fun. Plain-text overview at /llms.txt.",
     "contact": { "email": "support@pumpdata.fun" },
     "x-status": "live",
     "x-payment": { "protocol": "x402", "asset": "USDC", "network": "solana" },
@@ -15,7 +15,7 @@
     "/wallets": {
       "post": {
         "operationId": "wallet_records",
-        "summary": "Fetch what these wallets have been, since March 2025",
+        "summary": "Fetch what these wallets have been, since day one",
         "description": "Up to 50 wallet addresses in, and optionally the coin they are buying; for each, its class by rule (winner, bot, supply_seller, new, none) and the numbers behind it: SOL put in and taken out, coins traded, first seen. Records run to the last weekly build and are filled from the live recorder since; the build's date is in the X-Data-As-Of header. $0.01 a call.",
         "x-price-usd": 0.01,
         "x-payment-info": { "protocols": ["x402"], "price": { "mode": "fixed", "currency": "USD", "amount": "0.01" } },

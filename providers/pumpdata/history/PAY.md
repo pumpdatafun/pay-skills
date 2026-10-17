@@ -10,8 +10,8 @@ openapi:
 ---
 
 pumpdata.fun answers questions about pump.fun bonding-curve and PumpSwap history,
-read from the chain's own ledger with failed trades kept. The archive begins
-10 Mar 2025; PumpSwap launched 20 Mar 2025. Every answer carries `X-Data-From`
+read from the chain's own ledger with failed trades kept, since pump.fun's first
+day. Every answer carries `X-Data-From`
 (where the data begins) and `X-Data-As-Of` (the build it comes from). A window
 that ends before the data begins (`X-Data-From`) answers 404; a window inside
 the data with nothing in it is a charged 200. Not affiliated with pump.fun.

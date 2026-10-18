@@ -69,6 +69,40 @@
         }
       }
     },
+    "/deployer/{address}": {
+      "get": {
+        "operationId": "deployer_record",
+        "summary": "Fetch a deployer's record and its next launch's base rate, no coin needed",
+        "description": "The deployer's launches, graduations, best first-day peak, the gap between its last two launches and its last launch (the weekly tables plus the live recorder); over the last 90 days, its launches measured at minute five and how many doubled, did 10x, held at 2x at the close of the day or were dead; its ten newest launches; and the base rate for its next launch: launches of the last 90 days whose deployer had the same record bucket. A wallet with no launches gets the first-launch base rate. Facts, no score. $0.005 a call.",
+        "x-price-usd": 0.005,
+        "x-payment-info": { "protocols": ["x402"], "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" } },
+        "parameters": [
+          { "name": "address", "in": "path", "required": true, "schema": { "type": "string" }, "description": "the deployer's wallet address, base58", "example": "7ufmve7ZSFCzuNcKRunYrGtyb2Ka1MXzkWwf7jZhVsmL" }
+        ],
+        "responses": {
+          "200": { "description": "the record", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeployerRecord" } } } },
+          "402": { "$ref": "#/components/responses/PaymentRequired" }
+        }
+      }
+    },
+    "/similar/{mint}": {
+      "get": {
+        "operationId": "similar_launches",
+        "summary": "Fetch the launches most like this one, and how each went",
+        "description": "The comparables: the same deployer's prior launches first, then the nearest launches of the last 90 days in this coin's /launch bucket (the deployer's launches and graduations, the first-10 s buyers, the insiders' share and the curve progress at minute 5), each named with its mint, when it launched, its state at 5 min, how it went over the 24 h after (peak, close, dead or graduated) and a sentence on why it is similar. Only launches whose 24 h window is complete. Not a prediction. $0.005 a call.",
+        "x-price-usd": 0.005,
+        "x-payment-info": { "protocols": ["x402"], "price": { "mode": "fixed", "currency": "USD", "amount": "0.005" } },
+        "parameters": [
+          { "name": "mint", "in": "path", "required": true, "schema": { "type": "string" }, "description": "the token's mint address, base58", "example": "D27Lb9LA6D4dFpogGoXMXvZYkRsZ7UuctxAFpFQ3pump" },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 25, "default": 10 }, "description": "comparables to return" }
+        ],
+        "responses": {
+          "200": { "description": "the comparables", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SimilarLaunches" } } } },
+          "402": { "$ref": "#/components/responses/PaymentRequired" },
+          "404": { "description": "no such mint, or no curve reading to place it by" }
+        }
+      }
+    },
     "/replay": {
       "post": {
         "operationId": "replay",
@@ -117,12 +151,40 @@
         "type": "object",
         "properties": {
           "class": { "type": "string", "enum": ["winner", "bot", "supply_seller", "new", "none"], "description": "by rule: winner took out more than it put in over 20+ coin-weeks; bot trades a coin 20+ times a week or 500+ coins; supply_seller took out 1.5x what it put in, 100 SOL or more; new has no record before the mint given, or before today without one; none has a record that fits no rule (most wallets). The first rule that fits, in this order: bot, supply_seller, winner" },
-          "pnl_sol": { "type": "number" }, "put_in": { "type": "number", "description": "SOL" }, "took_out": { "type": "number", "description": "SOL" },
+          "pnl_sol": { "type": "number", "description": "took_out - put_in, SOL, over every trade since day one on pump.fun's venues only (the bonding curve and PumpSwap pools of pump.fun coins against SOL). A cross-DEX arbitrage bot that buys here and sells on another DEX shows its buy legs only, so its pnl here runs deeply negative; its class is bot." }, "put_in": { "type": "number", "description": "SOL" }, "took_out": { "type": "number", "description": "SOL" },
           "coins": { "type": "integer" }, "first_seen": { "type": ["string", "null"], "format": "date-time" },
           "summary": { "type": "string", "description": "one plain sentence built only from this record's own fields (class, SOL in and out, coins, first seen); a missing field is left out" },
           "compare_to": { "$ref": "#/components/schemas/CompareTo" },
           "next_steps": { "type": "array", "items": { "$ref": "#/components/schemas/NextStep" }, "description": "follow-up calls that answer now, the same for every wallet in the answer: GET /launch/{mint} when a mint was given, GET /baserate for compare_to's band and window" },
           "freshness": { "$ref": "#/components/schemas/Freshness" }
+        }
+      },
+      "DeployerRecord": {
+        "type": "object",
+        "properties": {
+          "address": { "type": "string" },
+          "record": { "type": "object", "description": "launches, graduations, graduation_rate, best_peak_usd, last_launch_gap_s, launches_last_day, last_launch, launches_after_build" },
+          "last_90_days": { "type": ["object", "null"], "description": "launches_measured, doubled, doubled_share, ten_x, ten_x_share, held_2x, held_2x_share, dead_next_day, dead_share, graduated_by_5m" },
+          "recent_launches": { "type": "array", "items": { "type": "object", "description": "mint, created, market_cap_usd_at_5m, buyers_first_10s, peak_mult_24h, close_mult_24h, dead_next_day, graduated" } },
+          "next_launch": { "type": "object", "description": "buckets (b_launches, b_grads) and launches_like_it: the same outcomes for launches of the last 90 days from deployers with that record, plus graduated and graduated_share" },
+          "definitions": { "type": "object" }
+        }
+      },
+      "SimilarLaunches": {
+        "type": "object",
+        "properties": {
+          "mint": { "type": "string" },
+          "at_age_s": { "type": "integer", "description": "the age the resemblance is judged at (300)" },
+          "key": { "type": "object", "description": "the /launch bucket: b_launches, b_grads, b_bundle, b_insider, b_curve" },
+          "yours": { "type": "object", "description": "this coin's five features at the age" },
+          "same_bucket_n": { "type": "integer", "description": "launches of the last 90 days in the same bucket" },
+          "comparables": { "type": "array", "items": { "type": "object", "properties": {
+            "mint": { "type": "string" }, "created": { "type": "string", "format": "date-time" }, "deployer": { "type": "string" }, "same_deployer": { "type": "boolean" },
+            "at_5m": { "type": "object", "description": "market_cap_usd, buyers_first_10s, bundle_supply_share, insider_share, curve_progress, graduated, deployer_launches_before, deployer_graduations_before" },
+            "next_24h": { "type": "object", "description": "dead (no trade at all in the 24 h after minute 5), peak_mult and close_mult over the market cap at minute 5" },
+            "similar_because": { "type": "string" }, "age_days": { "type": "integer" } } } },
+          "summary": { "type": "string", "description": "one sentence over the comparables: how many died, how many closed at or above their 5-minute market cap, the median peak" },
+          "definitions": { "type": "object" }
         }
       },
       "LaunchRecord": {

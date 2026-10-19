@@ -1,7 +1,7 @@
 ---
 name: history
 title: "pumpdata.fun"
-description: "pump.fun and PumpSwap history API: market-cap band base rates (2x-20x hit rates, median peak), rule-labelled wallet records with SOL PnL, launch records with deployer history and lookalike outcomes, deployer records without a mint, named similar launches, and replayed backtests with fills and fees."
+description: "pump.fun history API: market-cap base rates, wallet records with SOL in and out, launch and deployer records, named similar launches, and replayed backtests with fills and fees, from every pump.fun trade, ever."
 use_case: "Use for pump.fun memecoin base rates, survivorship-bias checks, wallet labels (bot, winner, supply seller, new), deployer and bundle history for a mint, and backtesting picks on graduated pump.fun coins at the PumpSwap pool with dead coins counted."
 category: finance
 service_url: https://pumpdata.fun
